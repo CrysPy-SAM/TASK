@@ -1,44 +1,52 @@
 function solution(D) {
-  const order = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const orderShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const result = {
-    Mon: 0,
-    Tue: 0,
-    Wed: 0,
-    Thu: 0,
-    Fri: 0,
-    Sat: 0,
-    Sun: 0
+    Mon: null,
+    Tue: null,
+    Wed: null,
+    Thu: null,
+    Fri: null,
+    Sat: null,
+    Sun: null
   };
 
-  for (const [date, value] of Object.entries(D)) {
-    const weekday = new Date(date).toLocaleDateString("en-US", { weekday: "short" });
-    result[weekday] += value;
+  const inputDays = new Set();
+
+  function getWeekday(dateStr) {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dayIndex = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+    return orderShort[dayIndex];
   }
 
-  for (let i = 0; i < order.length; i++) {
-    const day = order[i];
+  // FIX ★★★★★
+  for (const [date, value] of Object.entries(D)) {
+    const weekday = getWeekday(date);
 
-    if (result[day] === 0) {
-      let prev = null;
-      for (let p = i - 1; p >= 0; p--) {
-        if (result[order[p]] !== 0) {
-          prev = result[order[p]];
-          break;
-        }
-      }
+    if (result[weekday] === null) {
+      result[weekday] = value;
+    } else {
+      result[weekday] += value;   // <--- VERY IMPORTANT FIX
+    }
 
-      let next = null;
-      for (let n = i + 1; n < order.length; n++) {
-        if (result[order[n]] !== 0) {
-          next = result[order[n]];
-          break;
-        }
-      }
+    inputDays.add(weekday);
+  }
 
-      if (prev !== null && next !== null) {
-        result[day] = Math.round((prev + next) / 2);
-      }
+  // If all 7 days exist → return as is
+  if (inputDays.size === 7) return result;
+
+  const week = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+  let first = week.findIndex(day => result[day] !== null);
+  let last  = week.length - 1 - week.slice().reverse().findIndex(day => result[day] !== null);
+
+  const firstVal = result[week[first]];
+  const lastVal = result[week[last]];
+  const diff = (lastVal - firstVal) / (last - first);
+
+  for (let i = first; i <= last; i++) {
+    if (result[week[i]] === null) {
+      result[week[i]] = Math.round(firstVal + diff * (i - first));
     }
   }
 
