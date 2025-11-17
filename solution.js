@@ -51,6 +51,7 @@ function solution(D) {
   }
 
   return result;
+  
 }
 
 module.exports = solution;
